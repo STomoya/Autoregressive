@@ -141,7 +141,7 @@ def train_loop(
                 torchutils.save_model(checkpoint_folder, model, f'{kbatches}')
                 images = sample_image(model, label.size(), device, normalize=True)
                 images = torchutils.gather(images)
-                save_image0(images, os.path.join(checkpoint_folder, f'snapshot-{kbatches}.png'))
+                save_image0(images, os.path.join(checkpoint_folder, f'snapshot-{kbatches}.png'), normalize=True)
 
             if batches_done >= config.train.num_iterations:
                 break
