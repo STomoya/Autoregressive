@@ -1,0 +1,48 @@
+run:
+  folder: checkpoint
+  name: pixelcnn
+
+logging:
+  filename: log.log
+  interval: 100
+  frequent_until: 100
+  frequent_interval: 5
+
+repr:
+  seed: 3407
+  use_deterministic_algorithms: true
+  warn_only: true
+  cudnn_benchmark: false
+
+data:
+  image_size: 64
+  image_mode: RGB  # : grey-scale, RGB: colored
+  dataset_dir: data/afhq/train/cat
+
+  batch_size: 16
+  num_workers: 8
+
+model:
+  num_layers: 16
+  channels: 256
+  kernel_size: 3
+  color_levels: 256
+  image_channels: 3  # : grey-scale, 3: RGB
+  activation: lrelu
+
+optimizer:
+  lr: 0.001
+  betas:
+  - 0.9
+  - 0.999
+  weight_decay: 0.0001
+
+env:
+  compile: false
+  strategy: ddp  # change to ddp for dist.
+
+train:
+  num_iterations: 500000
+
+  running: 100
+  save_every: 10000
