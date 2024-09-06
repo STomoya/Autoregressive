@@ -1,0 +1,5 @@
+ninja
+datasets[vision]
+einops
+lpips
+omegaconf
