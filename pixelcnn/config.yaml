@@ -16,7 +16,7 @@ repr:
 
 data:
   image_size: 64
-  image_mode: RGB  # : grey-scale, RGB: colored
+  image_mode: L  # : grey-scale, RGB: colored
   dataset_dir: data/afhq/train/cat
 
   batch_size: 16
@@ -27,7 +27,7 @@ model:
   channels: 256
   kernel_size: 3
   color_levels: 256
-  image_channels: 3  # : grey-scale, 3: RGB
+  image_channels: 1  # : grey-scale, 3: RGB
   activation: lrelu
 
 optimizer:
@@ -42,7 +42,7 @@ env:
   strategy: ddp  # change to ddp for dist.
 
 train:
-  num_iterations: 500000
+  num_iterations: 100000
 
   running: 100
   save_every: 10000
