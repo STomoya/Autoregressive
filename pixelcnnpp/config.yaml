@@ -1,0 +1,47 @@
+run:
+  folder: checkpoint
+  name: pixelcnnpp
+
+logging:
+  filename: log.log
+  interval: 100
+  frequent_until: 100
+  frequent_interval: 5
+
+repr:
+  seed: 3407
+  use_deterministic_algorithms: true
+  warn_only: true
+  cudnn_benchmark: false
+
+data:
+  image_size: 64
+  image_mode: L  # : grey-scale, RGB: colored
+  dataset_dir: data/afhq/train/cat
+
+  batch_size: 16
+  num_workers: 8
+
+model:
+  num_layers_res: 5
+  channels: 64
+  num_logistic_mix: 10
+  image_channels: 1  # : grey-scale, 3: RGB
+  droprate: 0.5
+
+optimizer:
+  lr: 0.0001
+  betas:
+  - 0.9
+  - 0.999
+  # weight_decay: 0.0001
+
+env:
+  compile: false
+  strategy: ddp  # change to ddp for dist.
+
+train:
+  num_iterations: 100000
+
+  running: 100
+  save_every: 10000
