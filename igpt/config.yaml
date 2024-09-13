@@ -1,0 +1,59 @@
+run:
+  folder: checkpoint
+  name: igpt
+
+logging:
+  filename: log.log
+  interval: 100
+  frequent_until: 100
+  frequent_interval: 5
+
+repr:
+  seed: 3407
+  use_deterministic_algorithms: true
+  warn_only: true
+  cudnn_benchmark: false
+
+data:
+  image_size: 32
+  image_mode: RGB
+  dataset_dir: data/afhq/train/cat
+
+  batch_size: 16
+  num_workers: 8
+
+model:
+  color_palette: igpt/kmeans_centers.npy
+  seq_length: 1024
+  dims: 512
+  num_layers: 12
+  num_heads: 8
+  head_dims: null
+  qkv_bias: false
+  proj_bias: true
+  bias: true
+  activation: gelu
+  mlp_ratio: 4.0
+  attn_dropout: 0.0
+  proj_dropout: 0.0
+  dropout: 0.0
+  rms_norm: true
+  eps: 1e-6
+  layer_scale_init: 1e-5
+
+optimizer:
+  lr: 0.001
+  betas:
+  - 0.9
+  - 0.999
+  weight_decay: 0.0001
+
+env:
+  compile: false
+  strategy: ddp  # change to ddp for dist.
+
+train:
+  num_iterations: 100000
+
+  running: 100
+  save_every: 10000
