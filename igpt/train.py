@@ -64,6 +64,10 @@ def train():
     # Create loss.
     criterion = torch.nn.CrossEntropyLoss()
 
+    # gradient accumulation
+    grad_accum_steps = torchutils.gradient_accumulation_steps(config.train.target_batch_size, config.data.batch_size)
+    logger.info(f'Gradient accumulation steps: {grad_accum_steps}')
+
     # Load checkpoint if exists.
     consts = torchutils.load_checkpoint(
         os.path.join(checkpoint_folder, 'bins'),
@@ -84,6 +88,7 @@ def train():
         logger=logger,
         checkpoint_folder=checkpoint_folder,
         batches_done=batches_done,
+        grad_accum_steps=grad_accum_steps,
     )
 
 
@@ -97,11 +102,13 @@ def train_loop(
     logger: logging.Logger,
     checkpoint_folder: str,
     batches_done: int | None = None,
+    grad_accum_steps: int = 1,
 ):
     log_cfg = config.logging
     batches_done = batches_done or 0
     epoch = batches_done // len(dataset)
     save_image0 = torchutils.only_on_primary(save_image)
+    accumed_steps = 0
 
     while batches_done < config.train.num_iterations:
         if hasattr(dataset.sampler, 'set_epoch'):
@@ -119,29 +126,34 @@ def train_loop(
             batch_loss = recon_loss
 
             # Backward and step.
+            batch_loss = batch_loss / grad_accum_steps
             batch_loss.backward()
-            optimizer.step()
-            optimizer.zero_grad()
+            accumed_steps += 1
 
-            batches_done += 1
+            if accumed_steps == grad_accum_steps:
+                optimizer.step()
+                optimizer.zero_grad()
+                batches_done += 1
+                accumed_steps = 0
 
             # Logging.
-            if (
-                batches_done % log_cfg.interval == 0
-                or (batches_done <= log_cfg.frequent_until and batches_done % log_cfg.frequent_interval == 0)
-                or batches_done in (1, config.train.num_iterations)
-            ):
-                progress_p = batches_done / config.train.num_iterations * 100
-                message = f'Progress: {progress_p:5.2f}% | Loss: {batch_loss.item():.5f}'
-                logger.info(message)
+            if accumed_steps == 0:
+                if (
+                    batches_done % log_cfg.interval == 0
+                    or (batches_done <= log_cfg.frequent_until and batches_done % log_cfg.frequent_interval == 0)
+                    or batches_done in (1, config.train.num_iterations)
+                ):
+                    progress_p = batches_done / config.train.num_iterations * 100
+                    message = f'Progress: {progress_p:5.2f}% | Loss: {batch_loss.item():.5f}'
+                    logger.info(message)
 
-            # Save snapshop.
-            if batches_done % config.train.save_every == 0:
-                kbatches = f'{batches_done/1000:.2f}k'
-                torchutils.save_model(checkpoint_folder, model, f'{kbatches}')
-                images = sample_image(model, labels.size(), device)
-                images = torchutils.gather(images)
-                save_image0(images, os.path.join(checkpoint_folder, f'snapshot-{kbatches}.png'), normalize=True)
+                # Save snapshop.
+                if batches_done % config.train.save_every == 0:
+                    kbatches = f'{batches_done/1000:.2f}k'
+                    torchutils.save_model(checkpoint_folder, model, f'{kbatches}')
+                    images = sample_image(model, labels.size(), device)
+                    images = torchutils.gather(images)
+                    save_image0(images, os.path.join(checkpoint_folder, f'snapshot-{kbatches}.png'), normalize=True)
 
             if batches_done >= config.train.num_iterations:
                 break

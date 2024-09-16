@@ -1,6 +1,6 @@
 run:
   folder: checkpoint
-  name: igpt
+  name: igpt-64
 
 logging:
   filename: log.log
@@ -15,16 +15,16 @@ repr:
   cudnn_benchmark: false
 
 data:
-  image_size: 32
+  image_size: 64
   image_mode: RGB
   dataset_dir: data/afhq/train/cat
 
-  batch_size: 16
+  batch_size: 8
   num_workers: 8
 
 model:
   color_palette: igpt/kmeans_centers.npy
-  seq_length: 1024
+  seq_length: 4096  # 64*64
   dims: 512
   num_layers: 12
   num_heads: 8
@@ -57,3 +57,4 @@ train:
 
   running: 100
   save_every: 10000
+  target_batch_size: 32
